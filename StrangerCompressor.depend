@@ -1,0 +1,19 @@
+# depslib dependency file v1.0
+1559602767 source:c:\users\andre\source\c\trabalho 2 psb\strangercompressor\main.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+
+1559342263 source:c:\users\17204160\desktop\strangecompressor\huffmanreference.c
+	<stdio.h>
+	<stdlib.h>
+	<time.h>
+	<string.h>
+	<math.h>
+	<stdbool.h>
+
+1559347041 source:c:\users\17204160\desktop\strangecompressor\main.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+
