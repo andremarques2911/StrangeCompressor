@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 typedef struct {
     char carac;
     int freq;
@@ -8,20 +9,72 @@ typedef struct {
     struct Freqs *direita;
 }Freqs;
 
-Freqs* insereOrdenado(Freqs *caracFreg, int numeroCaracteres, char carac){
-    printf("Carac: %c\n", caracFreg->carac);
-    printf("Freg: %d\n", caracFreg->freq);
-    printf("Num Carac: %d\n", numeroCaracteres);
-    printf("CaracAdicionado: %c\n", carac);
+int tamanho = 0;
+
+// PROTIPOS
+void ordena(Freqs *caracFreq, int tam);
+void remove2(Freqs *caracFreq, int *tam);
+
+void insereOrdenado(Freqs *vet, int *tam){
+     /**
+    * Pega os dois menores da lista
+    * Soma as frequencias
+    * Cria um novo nodo com a soma deles
+    * Coloca o menor dos dois selecionados como filho da esquerda
+    * e o maior como filho da direita
+    * Remove os dois menores da lista
+    * Decrementa tamanho lista
+    * Insere o novo nodo na lista
+    * Incrementa o tamanho da lista
+    * Ordena a lista
+    **/
+    if(*tam>1){
+
+        Freqs *menor = &vet[0];
+        Freqs *maior = &vet[1];
+        Freqs novoNodo;
+        novoNodo.freq = menor->freq + maior->freq;
+        printf("\n\n");
+        for(int i=0; i<tamanho; i++){
+            printf(" [ %c, %d ] ", vet[i].carac, vet[i].freq);
+        }
+        printf("\nSoma dos valores: %d\n", novoNodo.freq);
+        novoNodo.esquerda = (struct Freqs*)menor;
+        novoNodo.direita = (struct Freqs*)maior;
+        novoNodo.carac = '@';
+        printf("Tamanho inicial: %d\n", *tam);
+        remove2(vet, tam);
+        printf("Tamanho apos remove: %d\n", *tam);
+        vet[*tam] = novoNodo;
+        *tam += 1;
+        printf("Tamanho apos insere: %d\n", *tam);
+        ordena(vet,*tam);
+        
+        insereOrdenado(vet, tam);
+    }
+    else{
+
+    }
+    /**
+        Freqs *menor = &vet[0];
+        Freqs *maior = &vet[1];
+        Freqs novoNodo;
+        novoNodo.freq = menor->freq + maior->freq;
+        novoNodo.esquerda = menor;
+        novoNodo.direita = maior;
+        vet[*tam] = novoNodo;
+        tam++;
+        remove2(&vet, &tam);
+        ordena(&vet,&tam);
+        insereOrdenado(&vet, &tam);
+    **/
 }
 
 void ordena(Freqs *caracFreq, int tam){
-    // Ordena o vetor
     Freqs aux;
     int alterou=0;
     int pos = 0;
-
-    while(tam>0){
+    while(tam>1){
         if(caracFreq[pos].freq > caracFreq[pos+1].freq){
             aux.freq = caracFreq[pos].freq;
             aux.carac = caracFreq[pos].carac;
@@ -32,7 +85,7 @@ void ordena(Freqs *caracFreq, int tam){
             alterou = 1;
         }
         pos++;
-        if(pos == tam){
+        if(pos == (tam-1)){
             if(alterou == 1){
                 pos = 0;
                 alterou = 0;
@@ -43,30 +96,31 @@ void ordena(Freqs *caracFreq, int tam){
             }
         }
     }
-
-    for(int i=0; i<5; i++){
-        printf(" [ %c, %d ] ", caracFreq[i].carac, caracFreq[i].freq);
-    }
-    printf("\n\n");
-
 }
 
+void remove2(Freqs *caracFreq, int *tam){
+    int cont=0;
+    for (int i = 0; i < *tam; i++)
+    {
+        if(i>1){
+            caracFreq[cont] = caracFreq[i];
+            cont++;
+        }
+        //printf("Cont: %d\n", cont);
+    }
+    *tam -= 2;
+}
 
-int main()
-{
+int main() {
     //char* entrada = calloc(300, sizeof entrada);
     char entrada[] = "aaaaabbbbcccdde";
     // Vetor criado para controlar numero de ocorrencias de caracteres
     int* numeroCaracteres = calloc(256, sizeof numeroCaracteres);
     // Controla tamanho da lista
-    int tamanho = 0;
-    // Struct armazena caracteres e frequencia
-
-
-
+    //int tamanho = 0;
     // Percorre os caracteres e soma uma unidade na posicao do vetor de controle de ocorrencias
     // na posicao com o mesmo valor do caractere em decimal
-    printf("Caracteres da mensagem em decmal:\n");
+    printf("Caracteres da mensagem em decimal:\n");
     for(int i=0; i<strlen(entrada); i++){
         printf(" [%d] ", entrada[i]);
         numeroCaracteres[(int)entrada[i]] += 1;
@@ -77,19 +131,13 @@ int main()
     for(int i=0; i<256; i++){
         printf(" [%d] ", numeroCaracteres[i]);
     }
-    //char* listaCaracteres = calloc()
-    /**
-    */
-
     // Busca tamanho da lista de caracteres e frequencia
     for(int i=0; i<256; i++){
         if(numeroCaracteres[i] != 0) {
             tamanho++;
         }
     }
-
-    printf("\nTamanho: %d\n", tamanho);
-
+    printf("\n\nTamanho: %d\n\n", tamanho);
     // Struct que armazena caracteres e suas respectivas frequencias
     Freqs caracFreq[tamanho];
     int contCaracFreq=0;
@@ -107,78 +155,30 @@ int main()
             }
         }
     }
-
     for(int i=0; i<tamanho; i++){
         printf(" [ %c, %d ] ", caracFreq[i].carac, caracFreq[i].freq);
     }
-    printf("\n\n");
-/*
-    // Ordena o vetor
-    Freqs aux;
-    int contAlt=tamanho;
-    int alterou=0;
-    int pos = 0;
 
-    while(contAlt>0){
-        if(caracFreq[pos].freq > caracFreq[pos+1].freq){
-            aux.freq = caracFreq[pos].freq;
-            aux.carac = caracFreq[pos].carac;
-            caracFreq[pos].freq = caracFreq[pos+1].freq;
-            caracFreq[pos].carac = caracFreq[pos+1].carac;
-            caracFreq[pos+1].freq = aux.freq;
-            caracFreq[pos+1].carac = aux.carac;
-            alterou = 1;
-        }
-        pos++;
-        if(pos == contAlt){
-            if(alterou == 1){
-                pos = 0;
-                alterou = 0;
-                contAlt--;
-            }
-            else if(alterou == 0){
-                break;
-            }
-        }
-    }
-*/
+
+    printf("\n\n");
     ordena(caracFreq, tamanho);
 
     for(int i=0; i<tamanho; i++){
         printf(" [ %c, %d ] ", caracFreq[i].carac, caracFreq[i].freq);
     }
 
+    printf("\n\n");
+    insereOrdenado(caracFreq, &tamanho);
 
-    //int controleLaco = tamanho;
-   // while(controleLaco > 1){
-
-        /**
-        * Pega os dois menores da lista
-        * Soma as frequencias
-        * Cria um novo nodo com a soma deles
-        * Coloca o menor dos dois selecionados como filho da esquerda
-        * e o maior como filho da direita
-        * Remove os dois menores da lista
-        * Decrementa tamanho lista
-        * Insere o novo nodo na lista
-        * Ordena a lista
-        **/
-/*
-        Freqs menor = caracFreq[0];
-        Freqs maior = caracFreq[1];
-        int somaFrequencia = menor->freq + maior->freq;
-        Freqs novoNodo;
-        novoNodo->freq = somaFrequencia;
-        novoNodo->esquerda = menor;
-        novoNodo->direita = maior;
-        remove();
-        insere(novoNodo);
-        ordena();
-
-
+    for(int i=0; i<tamanho; i++){
+        printf(" [ %c, %d ] ", caracFreq[i].carac, caracFreq[i].freq);
     }
 
-*/
+    printf("\n\nTamanho: %d\n\n", tamanho);
+
+    printf("\n\n######################################################################\n\n");
+
+    
 
 
     //printf("\nHello world!\n");
