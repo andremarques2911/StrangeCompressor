@@ -1,88 +1,154 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <stdlib.h>
 
-typedef struct {
-    char carac;
-    int freq;
-    struct Freqs *esquerda;
-    struct Freqs *direita;
-}Freqs;
+/** DEFINICAO DA ARVORE */
+typedef struct node
+{
+    int               frequencia;
+    char              caractere;
+    int               internalNode;
+    struct node       *esquerda;
+    struct node       *direita;
 
-int tamanho = 0;
+}node;
 
-// PROTIPOS
-void ordena(Freqs *caracFreq, int tam);
-void remove2(Freqs *caracFreq, int *tam);
+/** VARIAVEIS */
+int listaFrequencia[256] = {0};
+int tamanho;
+int contRefFolhas=0;
+int contRefNodes=0;
+int contAddRefNode=0;
+node *listaRefFolhas;
+node *listaRefNodes;
+node *lista;
 
-void insereOrdenado(Freqs *vet, int *tam){
-     /**
-    * Pega os dois menores da lista
-    * Soma as frequencias
-    * Cria um novo nodo com a soma deles
-    * Coloca o menor dos dois selecionados como filho da esquerda
-    * e o maior como filho da direita
-    * Remove os dois menores da lista
-    * Decrementa tamanho lista
-    * Insere o novo nodo na lista
-    * Incrementa o tamanho da lista
-    * Ordena a lista
-    **/
-    if(*tam>1){
+/** PROTOTIPOS */
+void CompressFile();
+void createLists();
+void print(node *lisSt, int tamanhoLista);
+void ordena(node *list, int tam);
+void remove2(node *list, int *tam);
+void insereOrdenado(node *list, int *tam);
+void addLists(node *esquerda, node *direita);
+node newNode(node *esquerda, node *direita);
+void addListaRefFolhas(node folha);
+void addListaRefNodes(node node);
+void addLeftRefNode(node *n);
+void addRigthRefNode(node *n);
+void addLeftRefFolha(node *n);
+void addRigthRefFolha(node *n);
 
-        Freqs *menor = &vet[0];
-        Freqs *maior = &vet[1];
-        Freqs novoNodo;
-        novoNodo.freq = menor->freq + maior->freq;
-        printf("\n\n");
-        for(int i=0; i<tamanho; i++){
-            printf(" [ %c, %d ] ", vet[i].carac, vet[i].freq);
+node newNode(node *esquerda, node *direita)
+{
+    node n;
+    n.caractere = '#';
+    n.frequencia = esquerda->frequencia + direita->frequencia;
+    n.internalNode = 1;
+    return n;
+}
+void addListaRefFolhas(node folha)
+{
+    listaRefFolhas[contRefFolhas] = folha;
+    contRefFolhas++;
+}
+void addListaRefNodes(node node)
+{
+    listaRefNodes[contRefNodes] = node;
+    contRefNodes++;
+}
+void addLeftRefNode(node *n)
+{
+    n->esquerda = &listaRefNodes[contAddRefNode];
+    contAddRefNode++;
+}
+void addRigthRefNode(node *n)
+{
+    n->direita = &listaRefNodes[contAddRefNode];
+    contAddRefNode++;
+}
+void addLeftRefFolha(node *n)
+{
+    n->esquerda = &listaRefFolhas[contRefFolhas-1];
+}
+void addRigthRefFolha(node *n)
+{
+    n->direita = &listaRefFolhas[contRefFolhas-1];
+}
+void addLists(node *esquerda, node *direita)
+{
+    node n = newNode(esquerda, direita);
+    if(esquerda->caractere == 35){
+        if(direita->caractere == 35){
+            addLeftRefNode(&n);
+            addRigthRefNode(&n);
         }
-        printf("\nSoma dos valores: %d\n", novoNodo.freq);
-        novoNodo.esquerda = (struct Freqs*)menor;
-        novoNodo.direita = (struct Freqs*)maior;
-        novoNodo.carac = '@';
-        printf("Tamanho inicial: %d\n", *tam);
-        remove2(vet, tam);
-        printf("Tamanho apos remove: %d\n", *tam);
-        vet[*tam] = novoNodo;
-        *tam += 1;
-        printf("Tamanho apos insere: %d\n", *tam);
-        ordena(vet,*tam);
-        
-        insereOrdenado(vet, tam);
+        else
+        {
+            addLeftRefNode(&n);
+            addListaRefFolhas(*direita);
+            addRigthRefFolha(&n); 
+        }       
+    }
+    else if(direita->caractere == 35){
+        addListaRefFolhas(*esquerda);
+        addLeftRefFolha(&n);
+        addRigthRefNode(&n);
     }
     else{
-
+        addListaRefFolhas(*esquerda);
+        addLeftRefFolha(&n);
+        addListaRefFolhas(*direita);
+        addRigthRefFolha(&n);    
     }
-    /**
-        Freqs *menor = &vet[0];
-        Freqs *maior = &vet[1];
-        Freqs novoNodo;
-        novoNodo.freq = menor->freq + maior->freq;
-        novoNodo.esquerda = menor;
-        novoNodo.direita = maior;
-        vet[*tam] = novoNodo;
-        tam++;
-        remove2(&vet, &tam);
-        ordena(&vet,&tam);
-        insereOrdenado(&vet, &tam);
-    **/
+    printf("n: [ %c , %d ]\n", n.caractere, n.frequencia);
+    printf("n.esquerda: [ %c , %d ]\n", n.esquerda->caractere, n.esquerda->frequencia);
+    printf("n.direita: [ %c , %d ]\n", n.direita->caractere, n.direita->frequencia);
+    addListaRefNodes(n);
+    lista[tamanho] = n;
+    tamanho++;
 }
 
-void ordena(Freqs *caracFreq, int tam){
-    Freqs aux;
+void insereOrdenado(node *list, int *tam){
+    printf("\nENTROU NO INSERE ORDENADO\n");
+    printf("Lista: ");
+    print(list, *tam);
+    printf("\n");
+    if(*tam>1){
+        addLists(&list[0], &list[1]);
+        remove2(list, tam);
+        ordena(list, *tam);        
+        insereOrdenado(list, tam);
+    }
+}
+
+/** ORDENA A LISTA */
+void ordena(node *list, int tam)
+{
+    node aux;
     int alterou=0;
     int pos = 0;
     while(tam>1){
-        if(caracFreq[pos].freq > caracFreq[pos+1].freq){
-            aux.freq = caracFreq[pos].freq;
-            aux.carac = caracFreq[pos].carac;
-            caracFreq[pos].freq = caracFreq[pos+1].freq;
-            caracFreq[pos].carac = caracFreq[pos+1].carac;
-            caracFreq[pos+1].freq = aux.freq;
-            caracFreq[pos+1].carac = aux.carac;
+        if(list[pos].frequencia > list[pos+1].frequencia){
+            aux.frequencia = list[pos].frequencia;
+            aux.caractere = list[pos].caractere;
+            list[pos].frequencia = list[pos+1].frequencia;
+            list[pos].caractere = list[pos+1].caractere;
+            list[pos+1].frequencia = aux.frequencia;
+            list[pos+1].caractere = aux.caractere;
             alterou = 1;
+        }
+        else if(list[pos].frequencia == list[pos+1].frequencia){
+            if (list[pos+1].caractere == 35)
+            {
+                aux.frequencia = list[pos].frequencia;
+                aux.caractere = list[pos].caractere;
+                list[pos].frequencia = list[pos+1].frequencia;
+                list[pos].caractere = list[pos+1].caractere;
+                list[pos+1].frequencia = aux.frequencia;
+                list[pos+1].caractere = aux.caractere;
+                alterou = 1;
+            }
         }
         pos++;
         if(pos == (tam-1)){
@@ -98,12 +164,14 @@ void ordena(Freqs *caracFreq, int tam){
     }
 }
 
-void remove2(Freqs *caracFreq, int *tam){
+/**REMOVE DA LISTA OS DOIS PRIMEIROS ELEMENTOS*/
+void remove2(node *list, int *tam)
+{
     int cont=0;
     for (int i = 0; i < *tam; i++)
     {
         if(i>1){
-            caracFreq[cont] = caracFreq[i];
+            list[cont] = list[i];
             cont++;
         }
         //printf("Cont: %d\n", cont);
@@ -111,77 +179,63 @@ void remove2(Freqs *caracFreq, int *tam){
     *tam -= 2;
 }
 
-int main() {
-    //char* entrada = calloc(300, sizeof entrada);
-    char entrada[] = "aaaaabbbbcccdde";
-    // Vetor criado para controlar numero de ocorrencias de caracteres
-    int* numeroCaracteres = calloc(256, sizeof numeroCaracteres);
-    // Controla tamanho da lista
-    //int tamanho = 0;
-    // Percorre os caracteres e soma uma unidade na posicao do vetor de controle de ocorrencias
-    // na posicao com o mesmo valor do caractere em decimal
-    printf("Caracteres da mensagem em decimal:\n");
-    for(int i=0; i<strlen(entrada); i++){
-        printf(" [%d] ", entrada[i]);
-        numeroCaracteres[(int)entrada[i]] += 1;
+/** OBTEM A FREQUENCIA QUE DE CADA CARACTERE E OBTEM TAMANHO DA LISTA*/
+void getFrequance(char *strIn)
+{
+    for(int i=0; i<strlen(strIn); i++){
+        listaFrequencia[strIn[i]] += 1;
     }
-    printf("\n\nVezes que cada caractere apreceu:\n");
-    // Percorre todo vetor de controle de ocorrencias e mostra quantas vezes cada caractere
-    // apareceu
+
     for(int i=0; i<256; i++){
-        printf(" [%d] ", numeroCaracteres[i]);
-    }
-    // Busca tamanho da lista de caracteres e frequencia
-    for(int i=0; i<256; i++){
-        if(numeroCaracteres[i] != 0) {
+        if(listaFrequencia[i]>0){
             tamanho++;
         }
     }
-    printf("\n\nTamanho: %d\n\n", tamanho);
-    // Struct que armazena caracteres e suas respectivas frequencias
-    Freqs caracFreq[tamanho];
-    int contCaracFreq=0;
+}
+
+/** CRIA AS LISTA INICIAL E ALOCA LISTAS AUXILIARES  */
+void createLists()
+{    
+    lista = calloc(tamanho, sizeof lista);
+    int j=0;
     for(int i=0; i<256; i++){
-        if(numeroCaracteres[i] > 0) {
-            if(i==32){
-                caracFreq[contCaracFreq].carac = 95;
-                caracFreq[contCaracFreq].freq = numeroCaracteres[i];
-                contCaracFreq++;
-            }
-            else{
-                caracFreq[contCaracFreq].carac = i;
-                caracFreq[contCaracFreq].freq = numeroCaracteres[i];
-                contCaracFreq++;
-            }
+        if(listaFrequencia[i]>0){
+            lista[j].caractere = i;
+            lista[j].frequencia = listaFrequencia[i];
+            lista[j].internalNode = 0;
+            j++;
         }
+    }    
+}
+
+/** FUNCAO QUE COMPRIME UM ARQUIVO UTILIZANDO A COMPRESSAO DE HUFFMAN */
+void CompressFile(char *listaEntrada)
+{
+    printf("Comprimindo...\n");
+    getFrequance(listaEntrada);
+    createLists();
+    ordena(lista, tamanho);
+    listaRefFolhas = calloc(tamanho, sizeof listaRefFolhas);
+    listaRefNodes = calloc(tamanho, sizeof listaRefNodes);
+    insereOrdenado(lista, &tamanho);
+    printf("Arquivo comprimido!");
+}
+
+void print(node *list, int tamanhoLista)
+{
+    for(int i=0; i<tamanhoLista; i++){
+        printf("[ %c , %d ] ", list[i].caractere, list[i].frequencia);
     }
-    for(int i=0; i<tamanho; i++){
-        printf(" [ %c, %d ] ", caracFreq[i].carac, caracFreq[i].freq);
-    }
+}
 
+int main()
+{
+    char entrada[] = "aaaaabbbbcccdde";
+    CompressFile(entrada);
 
-    printf("\n\n");
-    ordena(caracFreq, tamanho);
+    free(listaRefFolhas);
+    free(listaRefNodes);
+    free(lista);
 
-    for(int i=0; i<tamanho; i++){
-        printf(" [ %c, %d ] ", caracFreq[i].carac, caracFreq[i].freq);
-    }
-
-    printf("\n\n");
-    insereOrdenado(caracFreq, &tamanho);
-
-    for(int i=0; i<tamanho; i++){
-        printf(" [ %c, %d ] ", caracFreq[i].carac, caracFreq[i].freq);
-    }
-
-    printf("\n\nTamanho: %d\n\n", tamanho);
-
-    printf("\n\n######################################################################\n\n");
-
-    
-
-
-    //printf("\nHello world!\n");
-    free(numeroCaracteres);
     return 0;
 }
