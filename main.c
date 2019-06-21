@@ -2,41 +2,52 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 /** DEFINICAO DA ARVORE */
 typedef struct Node
 {
     char              caractere;
     int               frequencia;
-    int               internalNode;
     struct Node       *esquerda;
     struct Node       *direita;
 
 }Node;
 
+typedef struct Table
+{
+    char caractere;
+    char codigo[5];
+}Table;
 
 int listaFrequencia[256] = {0};
+int TAMLISTA;
 int tamanho=0;
 int contRefFolhas=0;
 int contRefNodes=0;
 int contAddRefNode=0;
+int contTable=0;
+char *path;
+Table *table;
 Node *lista;
 Node *listaRefFolhas;
 Node *listaRefNodes;
 
 
 /** PROTOTIPOS */
-void CompressFile();
-void createLists();
-void print(Node *lisSt, int tamanhoLista);
+Node* addListaRefFolhas(Node folha);
+void addListaRefNodes(Node n);
+void addCopy2List(Node n);
+void addLists(Node *esquerda, Node *direita);
+void insereOrdenado(Node *list, int *tam);
 void ordena(Node *list, int tam);
 void remove2(Node *list, int *tam);
-void insereOrdenado(Node *list, int *tam);
-void addLists(Node *esquerda, Node *direita);
-Node* addListaRefFolhas(Node folha);
-void addListaRefNodes(Node node);
+void createLists();
+void getFrequance(char *strIn);
 void lerArquivo(char *entrada);
-
+void generateTable(Node *n, int cont);
+void saveArq(char *huffman, int tam);
+char* getCode(char carac);
+void generateOut(char *entrada);
+void print(Node *list, int tamanhoLista);
 
 Node* addListaRefFolhas(Node folha)
 {
@@ -49,20 +60,16 @@ void addListaRefNodes(Node n)
     listaRefNodes[contRefNodes] = n;
     contRefNodes++;
 }
-
 void addCopy2List(Node n)
 {
     lista[tamanho] = n;
     tamanho++;
 }
-
 void addLists(Node *esquerda, Node *direita)
 {
     Node n;
     n.caractere = '#';
     n.frequencia = esquerda->frequencia + direita->frequencia;
-    n.internalNode = 1;
-    //printf("n: [ %c , %d ]\n", n.caractere, n.frequencia);
     if(esquerda->caractere == 35){
         if(direita->caractere == 35){
             n.esquerda = &listaRefNodes[contAddRefNode];
@@ -93,7 +100,6 @@ void addLists(Node *esquerda, Node *direita)
     addCopy2List(n);
     
 }
-
 void insereOrdenado(Node *list, int *tam)
 {
     if(*tam>1){
@@ -119,7 +125,6 @@ void insereOrdenado(Node *list, int *tam)
         insereOrdenado(list, tam);
     }
 }
-
 /** ORDENA A LISTA */
 void ordena(Node *list, int tam)
 {
@@ -161,7 +166,6 @@ void ordena(Node *list, int tam)
         }
     }
 }
-
 /**REMOVE DA LISTA OS DOIS PRIMEIROS ELEMENTOS*/
 void remove2(Node *list, int *tam)
 {
@@ -176,22 +180,21 @@ void remove2(Node *list, int *tam)
     }
     *tam -= 2;
 }
-
-void createLists(){
+void createLists()
+{
     listaRefFolhas = malloc(tamanho * sizeof (Node));
     listaRefNodes = malloc(tamanho * sizeof (Node));
     lista = malloc(tamanho * sizeof (Node));
+    table = malloc(tamanho * sizeof (Table));
     int i, j=0;
     for(i=0; i<256; i++){
         if(listaFrequencia[i]>0){
             lista[j].caractere = i;
             lista[j].frequencia = listaFrequencia[i];
-            lista[j].internalNode = 0;
             j++;
         }
     }
 }
-
 /** OBTEM A FREQUENCIA QUE DE CADA CARACTERE E OBTEM TAMANHO DA LISTA*/
 void getFrequance(char *strIn)
 {
@@ -204,15 +207,8 @@ void getFrequance(char *strIn)
             tamanho++;
         }
     }
+    TAMLISTA = tamanho;
 }
-
-void print(Node *list, int tamanhoLista)
-{
-    for(int i=0; i<tamanhoLista; i++){
-        printf("[ %c , %d ] ", list[i].caractere, list[i].frequencia);
-    }
-}
-
 void lerArquivo(char *entrada)
 {
     FILE *arq;
@@ -225,6 +221,69 @@ void lerArquivo(char *entrada)
     }
     fclose(arq);
 }
+//Table table[5];
+void generateTable(Node *n, int cont)
+{
+    if(n->caractere != 35){
+        table[contTable].caractere = n->caractere;
+        strcpy(table[contTable].codigo, path);
+        contTable++;
+        path[cont] = '\0';
+        cont--;
+        return;
+    }
+    path[cont] = '0';
+    generateTable(n->esquerda, cont + 1);
+    path[cont] = '1';
+    generateTable(n->direita, cont + 1);
+    path[cont] = '\0';
+    cont--;
+}
+void saveArq(char *huffman, int tam)
+{
+    char *out = malloc(200 * sizeof(out));
+
+    for(int i=0; i<contTable; i++){
+        strcat(out, &table[i].caractere);
+        tam+=strlen(&table[i].caractere);
+        //strcat(out, table[i].codigo);
+        strcat(out, "\n");
+        tam++;
+    }
+    strcat(out, "\n#");
+    tam+=2;
+    strcat(out, huffman);
+    FILE *saida = fopen("saida.txt", "w");
+    fwrite(out, tam, sizeof(out[0]), saida);
+    //fclose(saida);
+}
+char* getCode(char carac) 
+{
+    for (int i = 0; i < contTable; i++)
+    {
+        if(table[i].caractere == carac){
+            
+            return table[i].codigo;
+        }
+    }
+}
+void generateOut(char *entrada)
+{
+    char huffman[300];
+    int contUsado=0;
+    for (int i = 0; i < strlen(entrada); i++)
+    {
+        contUsado += strlen(getCode(entrada[i]));
+        strcat(huffman, getCode(entrada[i]));
+    }
+    saveArq(huffman, contUsado);
+}
+void print(Node *list, int tamanhoLista)
+{
+    for(int i=0; i<tamanhoLista; i++){
+        printf("[ %c , %d ] ", list[i].caractere, list[i].frequencia);
+    }
+}
 
 int main()
 {
@@ -233,28 +292,25 @@ int main()
 
     printf("Comprimindo...\n");
     getFrequance(entrada);
-    createLists();
+    createLists();  
     ordena(lista, tamanho);
     insereOrdenado(lista, &tamanho);
+
     Node raiz = listaRefNodes[contRefNodes-1];
+    path = calloc(TAMLISTA, sizeof path);
+    generateTable(&raiz, 0);
+
+    generateOut(entrada);
+
     printf("Arquivo comprimido!\n");
     printf("\n");
-
-    printf("Frequencia Raiz            [ %c , %d ]\n", raiz.caractere, raiz.frequencia);
-    printf("Frequencia E raiz:         [ %c , %d ]\n", raiz.esquerda->caractere, raiz.esquerda->frequencia);
-    printf("Frequencia D raiz:         [ %c , %d ]\n", raiz.direita->caractere, raiz.direita->frequencia);
-    printf("Frequencia DE raiz:        [ %c , %d ]\n", raiz.direita->esquerda->caractere, raiz.direita->esquerda->frequencia);
-    printf("Frequencia DD raiz:        [ %c , %d ]\n", raiz.direita->direita->caractere, raiz.direita->direita->frequencia);
-    printf("Frequencia DDE raiz:       [ %c , %d ]\n", raiz.direita->direita->esquerda->caractere, raiz.direita->direita->esquerda->frequencia);
-    printf("Frequencia DDEE raiz:      [ %c , %d ]\n", raiz.direita->direita->esquerda->esquerda->caractere, raiz.direita->direita->esquerda->esquerda->frequencia);
-    printf("Frequencia DDED raiz:      [ %c , %d ]\n", raiz.direita->direita->esquerda->direita->caractere, raiz.direita->direita->esquerda->direita->frequencia);
-    printf("Frequencia DDD raiz:       [ %c , %d ]\n", raiz.direita->direita->direita->caractere, raiz.direita->direita->direita->frequencia);
-
 
     free(entrada);
     free(lista);
     free(listaRefFolhas);
     free(listaRefNodes);
+    free(path);
+    
     return 0;
 }
 
