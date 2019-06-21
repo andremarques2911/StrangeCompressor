@@ -214,7 +214,7 @@ void getFrequance(char *strIn)
 void lerArquivo(char *entrada)
 {
     FILE *arq;
-    arq = fopen("entrada.txt", "r");
+    arq = fopen("teste03.txt", "r");
     if(arq == NULL) {
         printf("Erro, nao foi possivel abrir o arquivo\n");
     }
@@ -244,21 +244,23 @@ void generateTable(Node *n, int cont)
 /** SALVA O ARQUIVO NO DIRETORIO COM A TABELA E O ARQUIVO CODIFICADO */
 void saveArq(char *huffman, int tam)
 {
-    char *out = malloc(200 * sizeof(out));
-
+    char *out = malloc(1000 * sizeof(out));
+    FILE *saida = fopen("saida.piz", "w");
     for(int i=0; i<contTable; i++){
         strcat(out, &table[i].caractere);
-        tam+=strlen(&table[i].caractere);
+        //tam+=strlen(&table[i].caractere);
         //strcat(out, table[i].codigo);
         strcat(out, "\n");
-        tam++;
+        //tam++;
     }
-    strcat(out, "\n#");
-    tam+=2;
-    strcat(out, huffman);
-    FILE *saida = fopen("saida.txt", "w");
-    fwrite(out, tam, sizeof(out[0]), saida);
-    //fclose(saida);
+    //fprintf("%s\n", out);
+    //strcat(out, "\n#");
+    //tam+=2;
+    //strcat(out, huffman);
+    fprintf(saida, "%s\n#%s", out, huffman);
+    
+    //fwrite(out, tam, sizeof(out[0]), saida);
+    fclose(saida);
 }
 /** OBTEM CODIGO GUARDADO NA TABELA DE HUFFMAN DE UM CARACTERE */
 char* getCode(char carac) 
@@ -274,7 +276,7 @@ char* getCode(char carac)
 /** GERA A CODIFICACAO DO ARQUIVO DE ENTRADA UTILIZADO O CODIGO NA TABELA DE HUFFMAN */
 void generateOut(char *entrada)
 {
-    char huffman[300];
+    char huffman[10000];
     int contUsado=0;
     for (int i = 0; i < strlen(entrada); i++)
     {
@@ -291,9 +293,9 @@ void print(Node *list, int tamanhoLista)
     }
 }
 /** FUNCAO PRNCIPAL */
-int main()
+int main(char const *argv[])
 {
-    char *entrada = malloc(256);
+    char *entrada = malloc(10000);
     lerArquivo(entrada);
 
     printf("Comprimindo...\n");
@@ -305,10 +307,11 @@ int main()
     Node raiz = listaRefNodes[contRefNodes-1];
     path = calloc(TAMLISTA, sizeof path);
     generateTable(&raiz, 0);
-
+    
     generateOut(entrada);
 
     printf("Arquivo comprimido!\n");
+
     printf("\n");
 
     free(entrada);
