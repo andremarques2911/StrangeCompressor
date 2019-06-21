@@ -50,22 +50,28 @@ char* getCode(char carac);
 void generateOut(char *entrada);
 void print(Node *list, int tamanhoLista);
 
+/** ADICIONA O NODO NA LISTA DE FOLHAS */
 Node* addListaRefFolhas(Node folha)
 {
     listaRefFolhas[contRefFolhas] = folha;
     contRefFolhas++;
     return &listaRefFolhas[contRefFolhas-1];
 }
+/** ADICIONA O NODO NA LISTA DE NODOS INTERNOS */
 void addListaRefNodes(Node n)
 {    
     listaRefNodes[contRefNodes] = n;
     contRefNodes++;
 }
+/** ADICIONA UMA COPIA DO NODO NA LISTA DE CONTROLE */
 void addCopy2List(Node n)
 {
     lista[tamanho] = n;
     tamanho++;
 }
+/** DIRECIONA PARA QUAL LISTA AUXILIAR NODOS DEVEM SER ADICIONADOS E ATRIBUI 
+ *  AS REFERENCIAS DA ESQUERDA E DA DIREITA
+*/
 void addLists(Node *esquerda, Node *direita)
 {
     Node n;
@@ -101,6 +107,7 @@ void addLists(Node *esquerda, Node *direita)
     addCopy2List(n);
     
 }
+/** CRIA A ARVORE COM AS FREQUENCIAS */
 void insereOrdenado(Node *list, int *tam)
 {
     if(*tam>1){
@@ -181,6 +188,7 @@ void remove2(Node *list, int *tam)
     }
     *tam -= 2;
 }
+/** CRIA AS LISTAS UTILIZADAS E POPULA A LSTA DE CONTROLE COM OS CARACTERES E SUAS FREQUENCIAS */
 void createLists()
 {
     listaRefFolhas = malloc(tamanho * sizeof (Node));
@@ -214,7 +222,7 @@ void getFrequance(char *strIn)
 void lerArquivo(char *entrada)
 {
     FILE *arq;
-    arq = fopen("teste03.txt", "r");
+    arq = fopen("teste01.txt", "r");
     if(arq == NULL) {
         printf("Erro, nao foi possivel abrir o arquivo\n");
     }
