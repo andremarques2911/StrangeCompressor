@@ -12,12 +12,14 @@ typedef struct Node
 
 }Node;
 
+/** DEFINICAO DA TABELA DE HUFFMAN */
 typedef struct Table
 {
     char caractere;
     char codigo[5];
 }Table;
 
+/** VARIAVEIS */
 int listaFrequencia[256] = {0};
 int TAMLISTA;
 int tamanho=0;
@@ -30,7 +32,6 @@ Table *table;
 Node *lista;
 Node *listaRefFolhas;
 Node *listaRefNodes;
-
 
 /** PROTOTIPOS */
 Node* addListaRefFolhas(Node folha);
@@ -209,6 +210,7 @@ void getFrequance(char *strIn)
     }
     TAMLISTA = tamanho;
 }
+/** LE O ARQUIVO DO DIRETORIO */
 void lerArquivo(char *entrada)
 {
     FILE *arq;
@@ -221,7 +223,7 @@ void lerArquivo(char *entrada)
     }
     fclose(arq);
 }
-//Table table[5];
+/** GERA A TABELA DE HUFFMAN */
 void generateTable(Node *n, int cont)
 {
     if(n->caractere != 35){
@@ -239,6 +241,7 @@ void generateTable(Node *n, int cont)
     path[cont] = '\0';
     cont--;
 }
+/** SALVA O ARQUIVO NO DIRETORIO COM A TABELA E O ARQUIVO CODIFICADO */
 void saveArq(char *huffman, int tam)
 {
     char *out = malloc(200 * sizeof(out));
@@ -257,6 +260,7 @@ void saveArq(char *huffman, int tam)
     fwrite(out, tam, sizeof(out[0]), saida);
     //fclose(saida);
 }
+/** OBTEM CODIGO GUARDADO NA TABELA DE HUFFMAN DE UM CARACTERE */
 char* getCode(char carac) 
 {
     for (int i = 0; i < contTable; i++)
@@ -267,6 +271,7 @@ char* getCode(char carac)
         }
     }
 }
+/** GERA A CODIFICACAO DO ARQUIVO DE ENTRADA UTILIZADO O CODIGO NA TABELA DE HUFFMAN */
 void generateOut(char *entrada)
 {
     char huffman[300];
@@ -278,13 +283,14 @@ void generateOut(char *entrada)
     }
     saveArq(huffman, contUsado);
 }
+/** PRINTA NA TELA UMA LISTA DE NODES */
 void print(Node *list, int tamanhoLista)
 {
     for(int i=0; i<tamanhoLista; i++){
         printf("[ %c , %d ] ", list[i].caractere, list[i].frequencia);
     }
 }
-
+/** FUNCAO PRNCIPAL */
 int main()
 {
     char *entrada = malloc(256);
