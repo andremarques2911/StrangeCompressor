@@ -38,14 +38,14 @@ Node* addListaRefFolhas(Node folha);
 void addListaRefNodes(Node n);
 void addCopy2List(Node n);
 void addLists(Node *esquerda, Node *direita);
-void insereOrdenado(Node *list, int *tam);
-void ordena(Node *list, int tam);
+void insertSort(Node *list, int *tam);
+void sort(Node *list, int tam);
 void remove2(Node *list, int *tam);
 void createLists();
-void getFrequance(char *strIn);
-void lerArquivo(char *entrada);
+void getFrequency(char *strIn);
+void readFile(char *entrada);
 void generateTable(Node *n, int cont);
-void saveArq(char *huffman, int tam);
+void saveFile(char *huffman, int tam);
 char* getCode(char carac);
 void generateOut(char *entrada);
 void print(Node *list, int tamanhoLista);
@@ -101,40 +101,23 @@ void addLists(Node *esquerda, Node *direita)
         n.esquerda = addListaRefFolhas(*esquerda);
         n.direita = addListaRefFolhas(*direita);
     }   
-    // printf("Memo folha1: [ %d , %d ]\n", &listaRefFolhas[0], &listaRefFolhas[1]);
-    // printf("Memo folha2: [ %d , %d ]\n", &n.esquerda, &n.direita);
     addListaRefNodes(n);
     addCopy2List(n);
     
 }
 /** CRIA A ARVORE COM AS FREQUENCIAS */
-void insereOrdenado(Node *list, int *tam)
+void insertSort(Node *list, int *tam)
 {
     if(*tam>1){
         
         addLists(&list[0], &list[1]);
         remove2(list, tam);
-        ordena(list, *tam);   
-
-        // printf("Lista: ");
-        // print(list, *tam);
-        // printf("\n");
-
-        // printf("Lista Ref Folhas: ");
-        // print(listaRefFolhas, contRefFolhas);
-        // printf("\n");
-
-        // printf("Lista Ref Nodes: ");
-        // print(listaRefNodes, contRefNodes);
-        // printf("\n");
-        
-        //printf("\n");
-
-        insereOrdenado(list, tam);
+        sort(list, *tam);   
+        insertSort(list, tam);
     }
 }
 /** ORDENA A LISTA */
-void ordena(Node *list, int tam)
+void sort(Node *list, int tam)
 {
     Node aux;
     int alterou=0;
@@ -184,7 +167,6 @@ void remove2(Node *list, int *tam)
             list[cont] = list[i];
             cont++;
         }
-        //printf("Cont: %d\n", cont);
     }
     *tam -= 2;
 }
@@ -205,7 +187,7 @@ void createLists()
     }
 }
 /** OBTEM A FREQUENCIA QUE DE CADA CARACTERE E OBTEM TAMANHO DA LISTA*/
-void getFrequance(char *strIn)
+void getFrequency(char *strIn)
 {
     for(int i=0; i<strlen(strIn); i++){
         listaFrequencia[strIn[i]] += 1;
@@ -219,10 +201,10 @@ void getFrequance(char *strIn)
     TAMLISTA = tamanho;
 }
 /** LE O ARQUIVO DO DIRETORIO */
-void lerArquivo(char *entrada)
+void readFile(char *entrada)
 {
     FILE *arq;
-    arq = fopen("teste01.txt", "r");
+    arq = fopen("teste02.txt", "r");
     if(arq == NULL) {
         printf("Erro, nao foi possivel abrir o arquivo\n");
     }
@@ -250,24 +232,15 @@ void generateTable(Node *n, int cont)
     cont--;
 }
 /** SALVA O ARQUIVO NO DIRETORIO COM A TABELA E O ARQUIVO CODIFICADO */
-void saveArq(char *huffman, int tam)
+void saveFile(char *huffman, int tam)
 {
     char *out = malloc(1000 * sizeof(out));
     FILE *saida = fopen("saida.piz", "w");
     for(int i=0; i<contTable; i++){
         strcat(out, &table[i].caractere);
-        //tam+=strlen(&table[i].caractere);
-        //strcat(out, table[i].codigo);
         strcat(out, "\n");
-        //tam++;
     }
-    //fprintf("%s\n", out);
-    //strcat(out, "\n#");
-    //tam+=2;
-    //strcat(out, huffman);
     fprintf(saida, "%s\n#%s", out, huffman);
-    
-    //fwrite(out, tam, sizeof(out[0]), saida);
     fclose(saida);
 }
 /** OBTEM CODIGO GUARDADO NA TABELA DE HUFFMAN DE UM CARACTERE */
@@ -291,7 +264,7 @@ void generateOut(char *entrada)
         contUsado += strlen(getCode(entrada[i]));
         strcat(huffman, getCode(entrada[i]));
     }
-    saveArq(huffman, contUsado);
+    saveFile(huffman, contUsado);
 }
 /** PRINTA NA TELA UMA LISTA DE NODES */
 void print(Node *list, int tamanhoLista)
@@ -304,23 +277,19 @@ void print(Node *list, int tamanhoLista)
 int main(char const *argv[])
 {
     char *entrada = malloc(10000);
-    lerArquivo(entrada);
+    readFile(entrada);
 
     printf("Comprimindo...\n");
-    getFrequance(entrada);
+    getFrequency(entrada);
     createLists();  
-    ordena(lista, tamanho);
-    insereOrdenado(lista, &tamanho);
+    sort(lista, tamanho);
+    insertSort(lista, &tamanho);
 
     Node raiz = listaRefNodes[contRefNodes-1];
     path = calloc(TAMLISTA, sizeof path);
     generateTable(&raiz, 0);
-    
     generateOut(entrada);
-
     printf("Arquivo comprimido!\n");
-
-    printf("\n");
 
     free(entrada);
     free(lista);
@@ -330,4 +299,3 @@ int main(char const *argv[])
     
     return 0;
 }
-
